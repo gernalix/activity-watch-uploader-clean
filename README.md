@@ -1,0 +1,11 @@
+# Activity Watch Uploader
+
+Mirrors ActivityWatch’s canonical export into a separately configured PRIVATE Git repository as daily UTC JSONL, preserving timestamps, durations and data while omitting database-local event IDs. It retains bucket history and a full-reconciliation summary, writes atomically, locks concurrent runs and commits only buckets/ and metadata/. Code and personal event data remain separate.
+
+Python standard library, Git and a reachable ActivityWatch API are required. Configure AW_DATA_REPO_SLUG explicitly as your private owner/repository and AW_DATA_REPO_PATH as its checkout; there is no bundled operator destination. The exact origin guard rejects missing or mismatching identity. AW_BASE_URL defaults to loopback port5600; credentials/session/data are never part of this code tree. AW_RUNTIME_DIR selects private runtime lock/state. Existing refresh days, full reconciliation interval and bounded HTTP/Git timeouts are retained.
+
+The service installer is optional and changes user systemd state: do not execute it for review. It expects the documented code/data checkout names under ~/projects, requires AW_DATA_REPO_SLUG and validates the data origin before writing units. Keep the private environment file0600 and align the unit writable paths with your actual deployment. The bootstrap helper can select AW_CODE_REPO_SLUG (default this clean code repository) and requires AW_DATA_REPO_SLUG; its existing fail-closed validation and narrowly scoped nested-checkout repair remain. Neither helper is executed by CI.
+
+Normal execution contacts ActivityWatch and can rewrite/commit/push personal event data. --verify-mirror reads the configured private archive and is not a synthetic CI probe. CI uses only temporary mocked fixtures under an offline subprocess/network boundary guard, never an actual upload or provider.
+
+NV.txt preserves NV2. Original history, operation bindings, data and attribution remain private; this independent code candidate uses redacted commit contacts. No license is invented. Publication does not install, restart, migrate or accept the live service, data mirror or monitor. Preserve existing private checkouts/configuration and data during any separately authorized deployment.

@@ -1,0 +1,36 @@
+[Unit]
+Description=Export ActivityWatch raw buckets and push them to Git
+After=network-online.target
+Wants=network-online.target
+StartLimitIntervalSec=1h
+StartLimitBurst=5
+
+[Service]
+Type=oneshot
+WorkingDirectory=%h/projects/activity-watch-uploader
+EnvironmentFile=-%h/.config/activity-watch-uploader/env
+ExecStart=/usr/bin/python3 %h/projects/activity-watch-uploader/activity_watch_uploader.py
+TimeoutStartSec=30min
+TimeoutStopSec=30s
+Restart=on-failure
+RestartSec=2min
+KillMode=control-group
+UMask=0077
+Nice=10
+IOSchedulingClass=idle
+IOSchedulingPriority=7
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=%h/projects/activity-watch-uploader %h/projects/activity-watch-data
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+LockPersonality=yes
+MemoryDenyWriteExecute=yes
+RestrictNamespaces=yes
+RestrictRealtime=yes
+RestrictSUIDSGID=yes
+SystemCallArchitectures=native
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6

@@ -1,0 +1,47 @@
+name: Offline configuration
+run-name: publication-${{ inputs.cycle || github.run_id }}
+on:
+  workflow_dispatch:
+    inputs:
+      cycle:
+        description: Synthetic publication cycle identifier
+        required: true
+        type: string
+      expected_sha:
+        description: Reviewed exact commit SHA
+        required: true
+        type: string
+      mode:
+        description: Explicit private JIT or public hosted route
+        required: true
+        type: choice
+        options: [private, public]
+  push:
+  pull_request:
+permissions:
+  contents: read
+concurrency:
+  group: offline-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  offline-fixtures:
+    if: ${{ github.event_name != 'workflow_dispatch' && (!github.event.repository.private || (github.repository == 'gernalix/activity-watch-uploader-clean' && vars.CI_JIT_HEAD_SHA != '' && github.sha == vars.CI_JIT_HEAD_SHA && startsWith(vars.CI_JIT_LABEL, 'p205-r0099-'))) || github.event_name == 'workflow_dispatch' && github.sha == inputs.expected_sha && ((inputs.mode == 'public' && !github.event.repository.private) || (inputs.mode == 'private' && github.event.repository.private && (github.repository == 'gernalix/activity-watch-uploader-clean' && vars.CI_JIT_HEAD_SHA != '' && github.sha == vars.CI_JIT_HEAD_SHA && startsWith(vars.CI_JIT_LABEL, 'p205-r0099-')))) }}
+    runs-on: ${{ github.event.repository.private && (github.repository == 'gernalix/activity-watch-uploader-clean' && vars.CI_JIT_HEAD_SHA != '' && github.sha == vars.CI_JIT_HEAD_SHA && startsWith(vars.CI_JIT_LABEL, 'p205-r0099-')) && vars.CI_JIT_LABEL || 'ubuntu-latest' }}
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          ref: ${{ github.sha }}
+      - name: Verify exact checkout
+        env:
+          EXPECTED_SHA: ${{ github.sha }}
+        run: test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify offline fixtures
+        env:
+          PYTHONPATH: .
+          PYTHONDONTWRITEBYTECODE: '1'
+        run: python -B tests/run_offline.py

@@ -1,0 +1,13 @@
+[Unit]
+Description=Run ActivityWatch uploader every 15 minutes
+
+[Timer]
+OnBootSec=2min
+OnCalendar=*-*-* *:00,15,30,45:00
+AccuracySec=30s
+RandomizedDelaySec=20s
+Persistent=true
+Unit=activity-watch-uploader.service
+
+[Install]
+WantedBy=timers.target
